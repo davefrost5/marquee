@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { randomBytes } from "node:crypto";
 import path from "node:path";
 import bcrypt from "bcryptjs";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
@@ -15,6 +16,14 @@ function resolveDatabaseUrl() {
 
 const adapter = new PrismaBetterSqlite3({ url: resolveDatabaseUrl() });
 const prisma = new PrismaClient({ adapter });
+
+function seedPassword(envKey: string) {
+  const configured = process.env[envKey]?.trim();
+  if (configured) {
+    return configured;
+  }
+  return randomBytes(18).toString("base64url");
+}
 
 const FORCE_FED_SHOWS = [
   { date: "2026-05-22", time: "5:00 PM", venue: "The Columns, Avon" },
@@ -62,14 +71,13 @@ async function main() {
   await prisma.tenant.deleteMany();
   await prisma.user.deleteMany();
 
-  const passwordHash = await bcrypt.hash(
-    process.env.FORCE_FED_ADMIN_PASSWORD ?? "forcefed2026",
-    10,
-  );
+  const forceFedEmail = process.env.FORCE_FED_ADMIN_EMAIL?.trim() || "admin@forcefed.com";
+  const forceFedPassword = seedPassword("FORCE_FED_ADMIN_PASSWORD");
+  const passwordHash = await bcrypt.hash(forceFedPassword, 10);
 
   const admin = await prisma.user.create({
     data: {
-      email: process.env.FORCE_FED_ADMIN_EMAIL ?? "admin@forcefed.com",
+      email: forceFedEmail,
       password: passwordHash,
       name: "Force Fed Admin",
     },
@@ -143,10 +151,12 @@ async function main() {
     },
   });
 
-  const demoPassword = await bcrypt.hash("neonharbor2026", 10);
+  const neonHarborEmail = process.env.NEON_HARBOR_ADMIN_EMAIL?.trim() || "hello@neonharbor.band";
+  const neonHarborPassword = seedPassword("NEON_HARBOR_ADMIN_PASSWORD");
+  const demoPassword = await bcrypt.hash(neonHarborPassword, 10);
   const demoUser = await prisma.user.create({
     data: {
-      email: "hello@neonharbor.band",
+      email: neonHarborEmail,
       password: demoPassword,
       name: "Neon Harbor",
     },
@@ -202,8 +212,8 @@ async function main() {
   });
 
   console.log("Seeded Force Fed tenant:", forceFed.slug);
-  console.log("Admin login:", admin.email, "/", process.env.FORCE_FED_ADMIN_PASSWORD ?? "forcefed2026");
-  console.log("Demo band login: hello@neonharbor.band / neonharbor2026");
+  console.log("Force Fed admin login (local only):", forceFedEmail, "/", forceFedPassword);
+  console.log("Neon Harbor admin login (local only):", neonHarborEmail, "/", neonHarborPassword);
 }
 
 main()
