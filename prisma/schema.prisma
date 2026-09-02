@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id         String         @id @default(cuid())
+  email      String         @unique
+  password   String?
+  name       String?
+  createdAt  DateTime       @default(now())
+  tenants    TenantMember[]
+  magicLinks MagicLink[]
+}
+
+model MagicLink {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Tenant {
+  id                 String            @id @default(cuid())
+  slug               String            @unique
+  name               String
+  tagline            String
+  location           String?
+  bookingEmail       String
+  template           String            @default("editorial")
+  primaryColor       String            @default("#c8281f")
+  secondaryColor     String            @default("#0b0b0b")
+  backgroundColor    String            @default("#f3ece0")
+  textColor          String            @default("#0b0b0b")
+  headingFont        String            @default("Bowlby One")
+  bodyFont           String            @default("DM Sans")
+  accentFont         String            @default("DM Mono")
+  logoUrl            String?
+  heroImageUrl       String?
+  mascotUrl          String?
+  spotifyArtistId    String?
+  sectionOrder       String            @default("[\"hero\",\"music\",\"shows\",\"book\",\"media\"]")
+  onboardingComplete Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  members            TenantMember[]
+  shows              Show[]
+  availableDates     AvailableDate[]
+  bookingRequests    BookingRequest[]
+  mediaItems         MediaItem[]
+}
+
+model TenantMember {
+  id       String @id @default(cuid())
+  userId   String
+  tenantId String
+  role     String @default("admin")
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+}
+
+model Show {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  date      String
+  time      String
+  venue     String
+  createdAt DateTime @default(now())
+}
+
+model AvailableDate {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  date     String
+
+  @@unique([tenantId, date])
+}
+
+model BookingRequest {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name          String
+  email         String
+  eventType     String
+  location      String
+  message       String?
+  requestedDate String
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+}
+
+model MediaItem {
+  id           String @id @default(cuid())
+  tenantId     String
+  tenant       Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type         String
+  url          String
+  thumbnailUrl String?
+  caption      String?
+  sortOrder    Int    @default(0)
+}
