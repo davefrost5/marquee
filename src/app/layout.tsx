@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: "Multi-tenant SaaS for bands: public site, booking, and admin portal in minutes.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${dmSans.variable} ${dmMono.variable} ${inter.variable} ${spaceMono.variable} ${anton.variable} ${playfair.variable} h-full`}>
       <head>

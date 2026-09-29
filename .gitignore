@@ -38,8 +38,7 @@ yarn-error.log*
 # vercel
 .vercel
 
-# database & uploads
-/dev.db
+# uploads (local dev)
 /public/uploads/
 
 # typescript

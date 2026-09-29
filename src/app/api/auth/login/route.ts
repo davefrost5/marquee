@@ -4,6 +4,11 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { createSessionToken, setSessionCookie } from "@/lib/auth";
 
+function magicLinkRequestsAllowed() {
+  if (process.env.ALLOW_DEV_MAGIC_LINK === "true") return true;
+  return process.env.NODE_ENV !== "production";
+}
+
 export async function POST(request: Request) {
   const body = await request.json();
   const { email, password, mode, magicToken } = body as {
@@ -53,9 +58,22 @@ export async function POST(request: Request) {
   const normalizedEmail = email.toLowerCase().trim();
 
   if (mode === "magic") {
-    let user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (!magicLinkRequestsAllowed()) {
+      return NextResponse.json(
+        {
+          error:
+            "Magic link sign-in is disabled in production. Use password sign-in or set ALLOW_DEV_MAGIC_LINK=true only in non-production environments.",
+        },
+        { status: 403 },
+      );
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) {
-      user = await prisma.user.create({ data: { email: normalizedEmail } });
+      return NextResponse.json(
+        { error: "No account found for this email. Create an account via onboarding or use password sign-in." },
+        { status: 404 },
+      );
     }
 
     const token = randomUUID();
@@ -71,7 +89,7 @@ export async function POST(request: Request) {
       ok: true,
       message: "Magic link created",
       magicUrl,
-      devNote: "In production this would be emailed. Use the magicUrl below to sign in.",
+      devNote: "Development only: magic link is returned in the response. It is never returned when NODE_ENV=production unless ALLOW_DEV_MAGIC_LINK=true.",
     });
   }
 
