@@ -27,8 +27,8 @@ Open [http://127.0.0.1:43123](http://127.0.0.1:43123)
 
 | Band | Public site | Admin login |
 |------|-------------|-------------|
-| **Force Fed** (editorial template) | [/b/force-fed](http://127.0.0.1:43123/b/force-fed) | `admin@forcefed.com` / `forcefed2026` |
-| **Neon Harbor** (poster template) | [/b/neon-harbor](http://127.0.0.1:43123/b/neon-harbor) | `hello@neonharbor.band` / `neonharbor2026` |
+| **Force Fed** (editorial template) | [/b/force-fed](http://127.0.0.1:43123/b/force-fed) | `FORCE_FED_ADMIN_EMAIL` / `FORCE_FED_ADMIN_PASSWORD` from `.env` |
+| **Neon Harbor** (poster template) | [/b/neon-harbor](http://127.0.0.1:43123/b/neon-harbor) | `hello@neonharbor.band` / `NEON_HARBOR_DEMO_PASSWORD` from `.env` (random if unset) |
 
 ## Onboarding a new band
 

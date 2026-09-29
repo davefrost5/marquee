@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { randomBytes } from "node:crypto";
 import path from "node:path";
 import bcrypt from "bcryptjs";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
@@ -62,10 +63,13 @@ async function main() {
   await prisma.tenant.deleteMany();
   await prisma.user.deleteMany();
 
-  const passwordHash = await bcrypt.hash(
-    process.env.FORCE_FED_ADMIN_PASSWORD ?? "forcefed2026",
-    10,
-  );
+  const adminPassword = process.env.FORCE_FED_ADMIN_PASSWORD;
+  if (!adminPassword) {
+    throw new Error(
+      "FORCE_FED_ADMIN_PASSWORD must be set (see .env.example) before seeding.",
+    );
+  }
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
 
   const admin = await prisma.user.create({
     data: {
@@ -143,7 +147,10 @@ async function main() {
     },
   });
 
-  const demoPassword = await bcrypt.hash("neonharbor2026", 10);
+  const demoPassword = await bcrypt.hash(
+    process.env.NEON_HARBOR_DEMO_PASSWORD ?? randomBytes(24).toString("base64url"),
+    10,
+  );
   const demoUser = await prisma.user.create({
     data: {
       email: "hello@neonharbor.band",
@@ -202,8 +209,13 @@ async function main() {
   });
 
   console.log("Seeded Force Fed tenant:", forceFed.slug);
-  console.log("Admin login:", admin.email, "/", process.env.FORCE_FED_ADMIN_PASSWORD ?? "forcefed2026");
-  console.log("Demo band login: hello@neonharbor.band / neonharbor2026");
+  console.log("Admin user:", admin.email, "(password from FORCE_FED_ADMIN_PASSWORD)");
+  console.log(
+    "Demo band user: hello@neonharbor.band",
+    process.env.NEON_HARBOR_DEMO_PASSWORD
+      ? "(password from NEON_HARBOR_DEMO_PASSWORD)"
+      : "(random password; set NEON_HARBOR_DEMO_PASSWORD to choose one)",
+  );
 }
 
 main()

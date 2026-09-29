@@ -76,9 +76,8 @@ export default function HomePage() {
         <section className="mt-24 rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900 to-black p-8 md:p-12">
           <h2 className="text-2xl font-semibold">Try the seeded demo</h2>
           <p className="mt-3 max-w-2xl text-zinc-400">
-            Force Fed (tenant #1) ships with real gigs, gallery media, and Spotify. Sign into admin with{" "}
-            <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-200">admin@forcefed.com</code> /{" "}
-            <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-200">forcefed2026</code>.
+            Force Fed (tenant #1) ships with real gigs, gallery media, and Spotify. Admin credentials are
+            configured privately via environment variables.
           </p>
           <div className="mt-6 flex flex-wrap gap-3 text-sm">
             <Link href="/b/force-fed" className="underline underline-offset-4">
